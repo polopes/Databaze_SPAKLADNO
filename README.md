@@ -1,5 +1,3 @@
 # Databaze_SPAKLADNO
 
-
-pozdrav
-CHRAPKO MILUJE FEMBOYE
+feel me
