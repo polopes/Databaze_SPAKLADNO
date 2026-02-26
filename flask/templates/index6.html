@@ -1,0 +1,14 @@
+<html lang="cs">
+    <body>
+        <h1>pricti jednicku</h1>
+        <form method="post">
+            <label for="number">zadej cislo:</label>
+            <input type="number" name="number" required>
+            <button type="submit">odeslat</button>
+        </form>
+
+    {% if result is not none %}
+        <h2>Výsledek: {{ result }}</h2>
+    {% endif %}
+    </body>
+</html>
