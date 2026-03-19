@@ -1,4 +1,5 @@
 from flask import Flask, render_template, url_for, request
+import os
 
 app = Flask(__name__) # nazev pred route
 
@@ -33,5 +34,21 @@ def prvniFormularCislo():
 
     return render_template('index6.html', result=result)
 
+app.config["UPLOAD_FOLDER"] = "static/uploadedFiles/"
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+@app.route('/7', methods=['GET', 'POST'])
+def nahrani_souboru():
+    content = None
+    if request.method == 'POST':
+        file = request.files.get('file')
+        if file and file.filename.endswith('.txt'):
+            file_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+            file.save(file_path)
+            file.seek(0)
+            content = file.read().decode('utf-8')
+    return render_template('index7.html', content=content)
+
+
 if __name__ == '__main__':
     app.run()
+

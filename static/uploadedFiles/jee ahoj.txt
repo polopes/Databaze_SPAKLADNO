@@ -1,0 +1,1 @@
+https://github.com/JaroslavHolecek/Teaching/blob/master/JupyterNotebook/Python/Datove_typy_Zakladni_operatory_zadani.ipynb
