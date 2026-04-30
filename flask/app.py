@@ -130,5 +130,56 @@ def register():
     return render_template("register.html")
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['psw']
+
+        mydb = mysql.connector.connect(
+            host=HOST, user=USER, password=PASSWORD, database=DATABASE
+        )
+        mycursor = mydb.cursor()
+        mycursor.execute("SELECT heslo FROM uzivatele WHERE email = %s;", (email,))
+        result = mycursor.fetchone()
+
+        if result:
+            stored_hash = result[0]
+            if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
+                session['email'] = email  # uložení do session
+                return redirect(url_for('home_login_ukazka'))
+            else:
+                error_message = "Nesprávné heslo."
+        else:
+            error_message = "Uživatel nenalezen."
+
+        return render_template("login.html", error=error_message)
+
+    return render_template("login.html")
+
+@app.route('/home')
+def home_login_ukazka():
+    return render_template('home.html', email=session.get('email'))
+
+# Route /logout — odhlášení uživatele
+@app.route('/logout')
+def logout():
+    session.pop('email', None)  # odebrání ze session
+    return redirect(url_for('home_login_ukazka'))
+
+@app.route('/tabulka')
+def tabulka():
+    if 'email' not in session:
+        return redirect(url_for('login'))  # ochrana stránky
+
+    mydb = mysql.connector.connect(
+        host=HOST, user=USER, password=PASSWORD, database=DATABASE
+    )
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT * FROM uzivatele")
+    result = mycursor.fetchall()
+
+    return render_template("tabulka.html", email=session.get('email'), items=result)
+
 if __name__ == "__main__":
     app.run()
