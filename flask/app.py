@@ -2,8 +2,15 @@ from flask import Flask, render_template, url_for, request
 import os
 import plotly.graph_objects as go
 import plotly.io as pio
+from pripojeni import *
+import mysql.connector
 
-app = Flask(__name__) # nazev pred route
+mydb = mysql.connector.connect(
+    host=HOST, user=USER, password=PASSWORD, database=DATABASE
+)
+
+app = Flask(__name__)
+app.secret_key = 'Muj_tajny_klic' # nazev pred route
 
 @app.route('/1')
 def home ():
@@ -86,20 +93,42 @@ def graph():
 def parametry(id, name):
     return render_template("index9.html", id=id, name=name)
 
-@app.route('/10', methods=['GET', 'POST'])
-def redirekting():
-    result = None
-    if request.method != 'POST':
-        return render_template("index10.html", result=result)
-    
-    number = request.form.get('number', type=int)
-    result = number
-    
-    if result == 1:
-        return redirect('/1')
-    elif result == 2:
-        return redirect('/2')
-    else:
-        return rende_teplate index 10.html ,result = result    
-if __name__ == '__main__':
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = request.form['jmeno']
+        mail = request.form['email']
+        psw = request.form['psw']
+
+        # Hashování hesla
+        hashed_password = bcrypt.hashpw(psw.encode('utf-8'), bcrypt.gensalt())
+        hesloDoDB = hashed_password.decode('utf-8')
+
+        # Připojení k DB
+        mydb = mysql.connector.connect(
+            host=HOST, user=USER, password=PASSWORD, database=DATABASE
+        )
+        mycursor = mydb.cursor()
+
+        # Vytvoření tabulky (pokud neexistuje)
+        mycursor.execute("""CREATE TABLE IF NOT EXISTS uzivatele (
+            id int AUTO_INCREMENT PRIMARY KEY,
+            jmeno varchar(35) NOT NULL,
+            email varchar(50) NOT NULL,
+            heslo varchar(255) NOT NULL
+        );""")
+        mydb.commit()
+
+        # Vložení uživatele
+        sql = "INSERT INTO uzivatele (jmeno, email, heslo) VALUES (%s, %s, %s)"
+        mycursor.execute(sql, (name, mail, hesloDoDB))
+        mydb.commit()
+
+        return redirect(url_for('login'))  # po registraci → přihlášení
+
+    return render_template("register.html")
+
+
+if __name__ == "__main__":
     app.run()
